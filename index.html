@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="no">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Moderne personlig dashboard med klokke, vær og favoritter."
+    />
+    <title>Min Startside</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="bg-motion" aria-hidden="true">
+      <span class="orb orb-a"></span>
+      <span class="orb orb-b"></span>
+      <span class="orb orb-c"></span>
+    </div>
+    <a
+      href="https://www.glimt.no"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Åpne glimt.no i ny fane"
+    >
+      <img src="glimt_transparent.png" class="glimt-logo glimt-logo-left" alt="Bodø-Glimt logo" />
+    </a>
+    <a
+      href="https://www.glimt.no"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Åpne glimt.no i ny fane"
+    >
+      <img src="glimt_transparent.png" class="glimt-logo glimt-logo-right" alt="Bodø-Glimt logo" />
+    </a>
+
+    <header class="site-header" id="top" role="banner">
+      <nav class="nav" aria-label="Hovedmeny">
+        <a class="logo" href="#top">Erling</a>
+
+        <div class="nav-right">
+          <ul class="menu">
+            <li><a href="#favoritter">Favoritter</a></li>
+            <li><a href="#tips">Tips</a></li>
+          </ul>
+
+          <button
+            id="theme-toggle"
+            class="theme-toggle"
+            type="button"
+            aria-label="Bytt mellom lys og mørk modus"
+          >
+            Lys / Mørk
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <main class="page fade-in">
+      <section class="hero glass">
+        <p class="eyebrow">Personlig Dashboard</p>
+        <div id="clock" class="clock" aria-live="polite">--:--:--</div>
+        <p id="clock-date" class="clock-date">Laster dato...</p>
+      </section>
+
+      <section class="weather glass" aria-labelledby="weather-title">
+        <div class="weather-head">
+          <h2 id="weather-title">Vær i Stathelle</h2>
+          <a
+            class="weather-link"
+            href="https://www.yr.no/nb/v%C3%A6rvarsel/daglig-tabell/1-72837/Norge/Vestfold%20og%20Telemark/Bamble/Stathelle"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Åpne på Yr</a
+          >
+        </div>
+
+        <div id="weather-content" class="weather-content">
+          <p class="weather-status">Henter værdata fra Yr...</p>
+        </div>
+      </section>
+
+      <section id="favoritter" class="favorites section">
+        <div class="section-head">
+          <h2>Favoritter</h2>
+          <p>Rask tilgang til tjenestene du bruker mest.</p>
+        </div>
+
+        <div id="favorites-grid" class="favorites-grid" aria-live="polite"></div>
+      </section>
+
+      <section id="tips" class="tips glass">
+        <h2>Tips</h2>
+        <p><strong>Cmd+R</strong> refresh siden når du har gjort endringer.</p>
+        <p>Rediger lenkene i <code>app.js</code> i arrayen <code>favorites</code>.</p>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
