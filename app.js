@@ -84,6 +84,9 @@ const themeToggle = document.getElementById("theme-toggle");
 const clockEl = document.getElementById("clock");
 const clockDateEl = document.getElementById("clock-date");
 const weatherContent = document.getElementById("weather-content");
+const btcPriceEl = document.getElementById("btc-price");
+const btcChangeEl = document.getElementById("btc-change");
+const btcSparklineEl = document.getElementById("btc-sparkline");
 
 function renderFavorites() {
   if (!favoritesGrid) return;
@@ -183,6 +186,76 @@ function weatherMarkup(values) {
   `;
 }
 
+function buildSparkline(values) {
+  if (!btcSparklineEl || !Array.isArray(values) || values.length < 2) {
+    return;
+  }
+
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+
+  const points = values
+    .map((value, index) => {
+      const x = (index / (values.length - 1)) * 100;
+      const y = 30 - ((value - min) / range) * 30;
+      return `${x.toFixed(2)},${y.toFixed(2)}`;
+    })
+    .join(" ");
+
+  btcSparklineEl.innerHTML = `
+    <defs>
+      <linearGradient id="btc-line" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#f7931a" />
+        <stop offset="100%" stop-color="#ffd185" />
+      </linearGradient>
+    </defs>
+    <polyline points="${points}" fill="none" stroke="url(#btc-line)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></polyline>
+  `;
+}
+
+async function initBitcoinTrend() {
+  if (!btcPriceEl || !btcChangeEl || !btcSparklineEl) return;
+
+  const marketEndpoint =
+    "https://api.coingecko.com/api/v3/coins/markets?vs_currency=nok&ids=bitcoin&price_change_percentage=24h";
+  const chartEndpoint =
+    "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=nok&days=7&interval=daily";
+
+  try {
+    const [marketRes, chartRes] = await Promise.all([fetch(marketEndpoint), fetch(chartEndpoint)]);
+
+    if (!marketRes.ok || !chartRes.ok) {
+      throw new Error("Kunne ikke hente BTC-data");
+    }
+
+    const marketData = await marketRes.json();
+    const chartData = await chartRes.json();
+
+    const bitcoin = marketData?.[0];
+    const change = Number(bitcoin?.price_change_percentage_24h ?? 0);
+    const prices = Array.isArray(chartData?.prices)
+      ? chartData.prices.map((entry) => Number(entry?.[1])).filter((value) => Number.isFinite(value))
+      : [];
+
+    btcPriceEl.textContent = `${new Intl.NumberFormat("nb-NO", {
+      style: "currency",
+      currency: "NOK",
+      maximumFractionDigits: 0,
+    }).format(Number(bitcoin?.current_price ?? 0))}`;
+
+    btcChangeEl.textContent = `${change >= 0 ? "▲" : "▼"} ${Math.abs(change).toFixed(2)} % siste 24t`;
+    btcChangeEl.classList.toggle("is-up", change >= 0);
+    btcChangeEl.classList.toggle("is-down", change < 0);
+
+    buildSparkline(prices);
+  } catch (error) {
+    btcPriceEl.textContent = "Bitcoin-data utilgjengelig";
+    btcChangeEl.textContent = "Prøv igjen senere";
+    btcSparklineEl.innerHTML = "";
+  }
+}
+
 async function initWeather() {
   if (!weatherContent) return;
 
@@ -228,3 +301,5 @@ renderFavorites();
 initClock();
 initTheme();
 initWeather();
+initBitcoinTrend();
+setInterval(initBitcoinTrend, 5 * 60 * 1000);

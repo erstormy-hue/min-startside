@@ -152,6 +152,76 @@ a {
   z-index: 1;
 }
 
+.btc-widget {
+  position: fixed;
+  top: 78px;
+  left: clamp(14px, 3vw, 36px);
+  width: clamp(260px, 25vw, 360px);
+  padding: 1rem;
+  z-index: 1;
+}
+
+.btc-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.btc-label {
+  margin: 0;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  color: var(--text-muted);
+}
+
+.btc-head h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.btc-price {
+  margin: 0.45rem 0 0;
+  font-size: clamp(1.2rem, 2.4vw, 1.6rem);
+  font-weight: 700;
+}
+
+.btc-change {
+  margin: 0.2rem 0 0.55rem;
+  font-size: 0.92rem;
+  color: var(--text-muted);
+}
+
+.btc-change.is-up {
+  color: #72e19c;
+}
+
+.btc-change.is-down {
+  color: #ff8a94;
+}
+
+.btc-sparkline {
+  width: 100%;
+  height: 74px;
+  display: block;
+  border-radius: 0.75rem;
+  background: linear-gradient(180deg, rgba(247, 147, 26, 0.14) 0%, rgba(247, 147, 26, 0) 100%);
+}
+
+.btc-link {
+  display: inline-block;
+  margin-top: 0.6rem;
+  font-size: 0.82rem;
+  text-decoration: none;
+  color: var(--accent);
+}
+
+.btc-link:hover,
+.btc-link:focus-visible {
+  text-decoration: underline;
+}
+
 .site-header {
   padding-top: 1.1rem;
 }
@@ -455,6 +525,12 @@ button:focus-visible,
 }
 
 @media (max-width: 900px) {
+  .btc-widget {
+    position: static;
+    width: min(1120px, 92vw);
+    margin: 0.8rem auto 0;
+  }
+
   .glimt-logo {
     width: 70px;
     top: 150px;
