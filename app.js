@@ -87,6 +87,9 @@ const weatherContent = document.getElementById("weather-content");
 const btcPriceEl = document.getElementById("btc-price");
 const btcChangeEl = document.getElementById("btc-change");
 const btcSparklineEl = document.getElementById("btc-sparkline");
+const fundPriceEl = document.getElementById("fund-price");
+const fundChangeEl = document.getElementById("fund-change");
+const fundSparklineEl = document.getElementById("fund-sparkline");
 
 function renderFavorites() {
   if (!favoritesGrid) return;
@@ -186,8 +189,8 @@ function weatherMarkup(values) {
   `;
 }
 
-function buildSparkline(values) {
-  if (!btcSparklineEl || !Array.isArray(values) || values.length < 2) {
+function buildSparkline(targetEl, values, gradientId, colors) {
+  if (!targetEl || !Array.isArray(values) || values.length < 2) {
     return;
   }
 
@@ -203,14 +206,14 @@ function buildSparkline(values) {
     })
     .join(" ");
 
-  btcSparklineEl.innerHTML = `
+  targetEl.innerHTML = `
     <defs>
-      <linearGradient id="btc-line" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0%" stop-color="#f7931a" />
-        <stop offset="100%" stop-color="#ffd185" />
+      <linearGradient id="${gradientId}" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="${colors.start}" />
+        <stop offset="100%" stop-color="${colors.end}" />
       </linearGradient>
     </defs>
-    <polyline points="${points}" fill="none" stroke="url(#btc-line)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></polyline>
+    <polyline points="${points}" fill="none" stroke="url(#${gradientId})" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></polyline>
   `;
 }
 
@@ -248,12 +251,38 @@ async function initBitcoinTrend() {
     btcChangeEl.classList.toggle("is-up", change >= 0);
     btcChangeEl.classList.toggle("is-down", change < 0);
 
-    buildSparkline(prices);
+    buildSparkline(btcSparklineEl, prices, "btc-line", {
+      start: "#f7931a",
+      end: "#ffd185",
+    });
   } catch (error) {
     btcPriceEl.textContent = "Bitcoin-data utilgjengelig";
     btcChangeEl.textContent = "Prøv igjen senere";
     btcSparklineEl.innerHTML = "";
   }
+}
+
+function initFundTrend() {
+  if (!fundPriceEl || !fundChangeEl || !fundSparklineEl) return;
+
+  const latestValue = 100;
+  const sixMonthChange = 8.46;
+  const sampleTrend = [92.2, 92.5, 92.8, 93.1, 93.4, 93.6, 94.0, 94.5, 94.2, 94.8, 95.3, 95.1, 95.7, 96.0, 96.4, 96.8, 97.2, 97.6, 97.4, 97.9, 98.3, 98.7, 99.0, 99.4, 99.8, 100];
+
+  fundPriceEl.textContent = `${new Intl.NumberFormat("nb-NO", {
+    style: "currency",
+    currency: "NOK",
+    maximumFractionDigits: 2,
+  }).format(latestValue)} NAV-indeks`;
+
+  fundChangeEl.textContent = `${sixMonthChange >= 0 ? "▲" : "▼"} ${Math.abs(sixMonthChange).toFixed(2)} % siste 6 mnd`;
+  fundChangeEl.classList.toggle("is-up", sixMonthChange >= 0);
+  fundChangeEl.classList.toggle("is-down", sixMonthChange < 0);
+
+  buildSparkline(fundSparklineEl, sampleTrend, "fund-line", {
+    start: "#5cdab4",
+    end: "#b7f9e7",
+  });
 }
 
 async function initWeather() {
@@ -302,4 +331,5 @@ initClock();
 initTheme();
 initWeather();
 initBitcoinTrend();
+initFundTrend();
 setInterval(initBitcoinTrend, 5 * 60 * 1000);
