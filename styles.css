@@ -217,9 +217,39 @@ a {
 }
 
 .fund-sparkline {
-  background: linear-gradient(180deg, rgba(92, 218, 180, 0.14) 0%, rgba(92, 218, 180, 0) 100%);
+  background: linear-gradient(180deg, rgba(65, 200, 255, 0.2) 0%, rgba(65, 200, 255, 0) 100%);
 }
 
+
+.fund-periods {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  margin: 0.15rem 0 0.35rem;
+}
+
+.fund-period {
+  border: 1px solid color-mix(in srgb, var(--text-muted) 45%, transparent);
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: 999px;
+  font-size: 0.61rem;
+  line-height: 1;
+  padding: 0.2rem 0.45rem;
+  cursor: pointer;
+}
+
+.fund-period.is-active {
+  border-color: #41c8ff;
+  color: #41c8ff;
+}
+
+.fund-period:hover,
+.fund-period:focus-visible {
+  border-color: #85d9ff;
+  color: #85d9ff;
+  outline: none;
+}
 .btc-link {
   display: inline-block;
   margin-top: 0.45rem;

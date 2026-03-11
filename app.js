@@ -265,24 +265,62 @@ async function initBitcoinTrend() {
 function initFundTrend() {
   if (!fundPriceEl || !fundChangeEl || !fundSparklineEl) return;
 
-  const latestValue = 100;
-  const sixMonthChange = 8.46;
-  const sampleTrend = [92.2, 92.5, 92.8, 93.1, 93.4, 93.6, 94.0, 94.5, 94.2, 94.8, 95.3, 95.1, 95.7, 96.0, 96.4, 96.8, 97.2, 97.6, 97.4, 97.9, 98.3, 98.7, 99.0, 99.4, 99.8, 100];
+  const fundPeriods = {
+    "1m": {
+      label: "siste 1 mnd",
+      values: [3674, 3669, 3675, 3670, 3660, 3651, 3662, 3658, 3652, 3641, 3635, 3627, 3618, 3624, 3633, 3629, 3638, 3642, 3636, 3624],
+    },
+    "3m": {
+      label: "siste 3 mnd",
+      values: [3768, 3755, 3748, 3762, 3771, 3758, 3749, 3792, 3811, 3798, 3818, 3722, 3736, 3712, 3690, 3672, 3656, 3678, 3648, 3602, 3629, 3640, 3625, 3670, 3641, 3636, 3628, 3564, 3579],
+    },
+    "1y": {
+      label: "siste 1 år",
+      values: [3220, 3268, 3315, 3352, 3381, 3422, 3467, 3508, 3546, 3572, 3618, 3657, 3701, 3734, 3762, 3808, 3775, 3711, 3668, 3624, 3594, 3631, 3654, 3618],
+    },
+  };
 
-  fundPriceEl.textContent = `${new Intl.NumberFormat("nb-NO", {
-    style: "currency",
-    currency: "NOK",
-    maximumFractionDigits: 2,
-  }).format(latestValue)} NAV-indeks`;
+  const periodButtons = document.querySelectorAll("[data-fund-period]");
 
-  fundChangeEl.textContent = `${sixMonthChange >= 0 ? "▲" : "▼"} ${Math.abs(sixMonthChange).toFixed(2)} % siste 6 mnd`;
-  fundChangeEl.classList.toggle("is-up", sixMonthChange >= 0);
-  fundChangeEl.classList.toggle("is-down", sixMonthChange < 0);
+  const renderFundPeriod = (periodKey) => {
+    const current = fundPeriods[periodKey] || fundPeriods["3m"];
+    const values = current.values;
+    const latestValue = values[values.length - 1];
+    const startValue = values[0];
+    const periodChange = ((latestValue - startValue) / startValue) * 100;
 
-  buildSparkline(fundSparklineEl, sampleTrend, "fund-line", {
-    start: "#5cdab4",
-    end: "#b7f9e7",
+    fundPriceEl.textContent = `${new Intl.NumberFormat("nb-NO", {
+      style: "currency",
+      currency: "NOK",
+      maximumFractionDigits: 4,
+      minimumFractionDigits: 4,
+    }).format(latestValue)}`;
+
+    fundChangeEl.textContent = `${periodChange >= 0 ? "▲" : "▼"} ${Math.abs(periodChange).toFixed(2)} % ${current.label}`;
+    fundChangeEl.classList.toggle("is-up", periodChange >= 0);
+    fundChangeEl.classList.toggle("is-down", periodChange < 0);
+
+    fundSparklineEl.setAttribute("aria-label", `KLP AksjeGlobal Indeks P trend ${current.label}`);
+
+    buildSparkline(fundSparklineEl, values, "fund-line", {
+      start: "#41c8ff",
+      end: "#85d9ff",
+    });
+
+    periodButtons.forEach((button) => {
+      const isActive = button.dataset.fundPeriod === periodKey;
+      button.classList.toggle("is-active", isActive);
+      button.setAttribute("aria-pressed", String(isActive));
+    });
+  };
+
+  periodButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      renderFundPeriod(button.dataset.fundPeriod || "3m");
+    });
   });
+
+  renderFundPeriod("3m");
 }
 
 async function initWeather() {

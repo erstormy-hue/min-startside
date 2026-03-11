@@ -40,14 +40,19 @@
         <h2 id="fund-title">KLP AksjeGlobal Indeks P</h2>
       </div>
       <p id="fund-price" class="btc-price">Laster fondskurs…</p>
-      <p id="fund-change" class="btc-change">Henter utvikling siste 6 mnd…</p>
+      <p id="fund-change" class="btc-change">Henter utvikling siste 3 mnd…</p>
+      <div class="fund-periods" role="group" aria-label="Velg trendperiode for fond">
+        <button type="button" class="fund-period" data-fund-period="1m">1M</button>
+        <button type="button" class="fund-period is-active" data-fund-period="3m">3M</button>
+        <button type="button" class="fund-period" data-fund-period="1y">1Y</button>
+      </div>
       <svg
         id="fund-sparkline"
         class="btc-sparkline fund-sparkline"
         viewBox="0 0 100 30"
         preserveAspectRatio="none"
         role="img"
-        aria-label="KLP AksjeGlobal Indeks N trend siste 6 måneder"
+        aria-label="KLP AksjeGlobal Indeks P trend"
       ></svg>
       <a
         class="btc-link"
