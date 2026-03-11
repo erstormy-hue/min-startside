@@ -152,13 +152,20 @@ a {
   z-index: 1;
 }
 
-.btc-widget {
+.trend-widget {
   position: fixed;
-  top: 78px;
   left: clamp(14px, 3vw, 36px);
-  width: clamp(260px, 25vw, 360px);
-  padding: 1rem;
+  width: clamp(182px, 17.5vw, 252px);
+  padding: 0.7rem;
   z-index: 1;
+}
+
+.btc-widget {
+  top: 78px;
+}
+
+.fund-widget {
+  top: 282px;
 }
 
 .btc-head {
@@ -170,7 +177,7 @@ a {
 
 .btc-label {
   margin: 0;
-  font-size: 0.72rem;
+  font-size: 0.62rem;
   text-transform: uppercase;
   letter-spacing: 0.11em;
   color: var(--text-muted);
@@ -178,18 +185,18 @@ a {
 
 .btc-head h2 {
   margin: 0;
-  font-size: 1rem;
+  font-size: 0.88rem;
 }
 
 .btc-price {
-  margin: 0.45rem 0 0;
-  font-size: clamp(1.2rem, 2.4vw, 1.6rem);
+  margin: 0.3rem 0 0;
+  font-size: clamp(0.9rem, 1.7vw, 1.15rem);
   font-weight: 700;
 }
 
 .btc-change {
-  margin: 0.2rem 0 0.55rem;
-  font-size: 0.92rem;
+  margin: 0.15rem 0 0.4rem;
+  font-size: 0.7rem;
   color: var(--text-muted);
 }
 
@@ -203,16 +210,20 @@ a {
 
 .btc-sparkline {
   width: 100%;
-  height: 74px;
+  height: 52px;
   display: block;
-  border-radius: 0.75rem;
+  border-radius: 0.55rem;
   background: linear-gradient(180deg, rgba(247, 147, 26, 0.14) 0%, rgba(247, 147, 26, 0) 100%);
+}
+
+.fund-sparkline {
+  background: linear-gradient(180deg, rgba(92, 218, 180, 0.14) 0%, rgba(92, 218, 180, 0) 100%);
 }
 
 .btc-link {
   display: inline-block;
-  margin-top: 0.6rem;
-  font-size: 0.82rem;
+  margin-top: 0.45rem;
+  font-size: 0.68rem;
   text-decoration: none;
   color: var(--accent);
 }
@@ -525,7 +536,7 @@ button:focus-visible,
 }
 
 @media (max-width: 900px) {
-  .btc-widget {
+  .trend-widget {
     position: static;
     width: min(1120px, 92vw);
     margin: 0.8rem auto 0;
