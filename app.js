@@ -74,6 +74,7 @@ const favorites = [
 ];
 
 const THEME_KEY = "min-startside-theme";
+const BTC_HOLDINGS = 0.755;
 const STATHELLE = {
   lat: 59.046,
   lon: 9.698,
@@ -237,15 +238,22 @@ async function initBitcoinTrend() {
 
     const bitcoin = marketData?.[0];
     const change = Number(bitcoin?.price_change_percentage_24h ?? 0);
+    const currentPrice = Number(bitcoin?.current_price ?? 0);
     const prices = Array.isArray(chartData?.prices)
-      ? chartData.prices.map((entry) => Number(entry?.[1])).filter((value) => Number.isFinite(value))
+      ? chartData.prices
+          .map((entry) => Number(entry?.[1]) * BTC_HOLDINGS)
+          .filter((value) => Number.isFinite(value))
       : [];
+    const portfolioValue = currentPrice * BTC_HOLDINGS;
 
     btcPriceEl.textContent = `${new Intl.NumberFormat("nb-NO", {
       style: "currency",
       currency: "NOK",
       maximumFractionDigits: 0,
-    }).format(Number(bitcoin?.current_price ?? 0))}`;
+    }).format(portfolioValue)} (${new Intl.NumberFormat("nb-NO", {
+      minimumFractionDigits: 3,
+      maximumFractionDigits: 3,
+    }).format(BTC_HOLDINGS)} BTC)`;
 
     btcChangeEl.textContent = `${change >= 0 ? "▲" : "▼"} ${Math.abs(change).toFixed(2)} % siste 24t`;
     btcChangeEl.classList.toggle("is-up", change >= 0);
