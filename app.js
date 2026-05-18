@@ -75,6 +75,27 @@ const favorites = [
 
 const THEME_KEY = "min-startside-theme";
 const BTC_HOLDINGS = 0.755;
+const KLP_FUND_ISIN = "NO0010776040";
+const KLP_FUND_UNITS = 2267.4217;
+const KLP_CURRENT_NAV = 1782.07;
+const KLP_CURRENT_NAV_DATE = "2026-05-18";
+const KLP_FUND_HISTORY = [
+  { date: "2025-05-13", value: 3220.0 },
+  { date: "2025-06-13", value: 3268.0 },
+  { date: "2025-07-13", value: 3352.0 },
+  { date: "2025-08-13", value: 3422.0 },
+  { date: "2025-09-13", value: 3508.0 },
+  { date: "2025-10-13", value: 3618.0 },
+  { date: "2025-11-13", value: 3701.0 },
+  { date: "2025-12-31", value: 3744.86 },
+  { date: "2026-01-13", value: 3808.0 },
+  { date: "2026-02-13", value: 3768.0 },
+  { date: "2026-03-13", value: 3712.0 },
+  { date: "2026-04-13", value: 3635.0 },
+  { date: "2026-04-29", value: 3608.22 },
+  { date: "2026-05-08", value: 3667.0 },
+  { date: "2026-05-13", value: 3693.18 },
+];
 const STATHELLE = {
   lat: 59.046,
   lon: 9.698,
@@ -91,6 +112,7 @@ const btcSparklineEl = document.getElementById("btc-sparkline");
 const fundPriceEl = document.getElementById("fund-price");
 const fundChangeEl = document.getElementById("fund-change");
 const fundSparklineEl = document.getElementById("fund-sparkline");
+const fundUpdatedEl = document.getElementById("fund-updated");
 
 function renderFavorites() {
   if (!favoritesGrid) return;
@@ -218,6 +240,28 @@ function buildSparkline(targetEl, values, gradientId, colors) {
   `;
 }
 
+function formatDate(value) {
+  return new Intl.DateTimeFormat("nb-NO", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(new Date(`${value}T00:00:00`));
+}
+
+function daysBetween(startDate, endDate) {
+  const millisecondsPerDay = 24 * 60 * 60 * 1000;
+  return Math.round((endDate - startDate) / millisecondsPerDay);
+}
+
+function formatCurrency(value, maximumFractionDigits = 0) {
+  return new Intl.NumberFormat("nb-NO", {
+    style: "currency",
+    currency: "NOK",
+    maximumFractionDigits,
+    minimumFractionDigits: maximumFractionDigits,
+  }).format(value);
+}
+
 async function initBitcoinTrend() {
   if (!btcPriceEl || !btcChangeEl || !btcSparklineEl) return;
 
@@ -276,39 +320,78 @@ function initFundTrend() {
   const fundPeriods = {
     "1m": {
       label: "siste 1 mnd",
-      values: [3674, 3669, 3675, 3670, 3660, 3651, 3662, 3658, 3652, 3641, 3635, 3627, 3618, 3624, 3633, 3629, 3638, 3642, 3636, 3624],
+      days: 31,
     },
     "3m": {
       label: "siste 3 mnd",
-      values: [3768, 3755, 3748, 3762, 3771, 3758, 3749, 3792, 3811, 3798, 3818, 3722, 3736, 3712, 3690, 3672, 3656, 3678, 3648, 3602, 3629, 3640, 3625, 3670, 3641, 3636, 3628, 3564, 3579],
+      days: 92,
     },
     "1y": {
       label: "siste 1 år",
-      values: [3220, 3268, 3315, 3352, 3381, 3422, 3467, 3508, 3546, 3572, 3618, 3657, 3701, 3734, 3762, 3808, 3775, 3711, 3668, 3624, 3594, 3631, 3654, 3618],
+      days: 366,
     },
   };
 
   const periodButtons = document.querySelectorAll("[data-fund-period]");
+  const rawHistory = KLP_FUND_HISTORY.map((point) => ({
+    ...point,
+    timestamp: new Date(`${point.date}T00:00:00`).getTime(),
+  })).sort((a, b) => a.timestamp - b.timestamp);
+  const navScale = KLP_CURRENT_NAV / rawHistory[rawHistory.length - 1].value;
+  const history = rawHistory.map((point) => ({
+    ...point,
+    value: point.value * navScale,
+  }));
+
+  if (history[history.length - 1].date !== KLP_CURRENT_NAV_DATE) {
+    history.push({
+      date: KLP_CURRENT_NAV_DATE,
+      value: KLP_CURRENT_NAV,
+      timestamp: new Date(`${KLP_CURRENT_NAV_DATE}T00:00:00`).getTime(),
+    });
+  }
+
+  const latestPoint = history[history.length - 1];
+
+  const getPeriodValues = (periodKey) => {
+    const period = fundPeriods[periodKey] || fundPeriods["3m"];
+    const cutoff = latestPoint.timestamp - period.days * 24 * 60 * 60 * 1000;
+    const periodPoints = history.filter((point) => point.timestamp >= cutoff);
+
+    if (periodPoints.length < 2) {
+      return history.slice(-2);
+    }
+
+    return periodPoints;
+  };
 
   const renderFundPeriod = (periodKey) => {
     const current = fundPeriods[periodKey] || fundPeriods["3m"];
-    const values = current.values;
-    const latestValue = values[values.length - 1];
-    const startValue = values[0];
+    const periodPoints = getPeriodValues(periodKey);
+    const values = periodPoints.map((point) => point.value * KLP_FUND_UNITS);
+    const latestValue = latestPoint.value;
+    const startValue = periodPoints[0].value;
+    const latestPortfolioValue = latestValue * KLP_FUND_UNITS;
     const periodChange = ((latestValue - startValue) / startValue) * 100;
+    const periodDays = daysBetween(new Date(`${periodPoints[0].date}T00:00:00`), new Date(`${latestPoint.date}T00:00:00`));
 
-    fundPriceEl.textContent = `${new Intl.NumberFormat("nb-NO", {
-      style: "currency",
-      currency: "NOK",
-      maximumFractionDigits: 4,
-      minimumFractionDigits: 4,
-    }).format(latestValue)}`;
+    fundPriceEl.textContent = formatCurrency(latestPortfolioValue);
 
     fundChangeEl.textContent = `${periodChange >= 0 ? "▲" : "▼"} ${Math.abs(periodChange).toFixed(2)} % ${current.label}`;
     fundChangeEl.classList.toggle("is-up", periodChange >= 0);
     fundChangeEl.classList.toggle("is-down", periodChange < 0);
 
-    fundSparklineEl.setAttribute("aria-label", `KLP AksjeGlobal Indeks P trend ${current.label}`);
+    if (fundUpdatedEl) {
+      fundUpdatedEl.textContent = `NAV ${formatCurrency(KLP_CURRENT_NAV, 2)} · ${new Intl.NumberFormat("nb-NO", {
+        minimumFractionDigits: 4,
+        maximumFractionDigits: 4,
+      }).format(KLP_FUND_UNITS)} andeler · ${formatDate(latestPoint.date)}`;
+    }
+
+    fundSparklineEl.setAttribute(
+      "aria-label",
+      `KLP AksjeGlobal Indeks P trend ${current.label}, ${periodDays} dager`
+    );
 
     buildSparkline(fundSparklineEl, values, "fund-line", {
       start: "#41c8ff",
