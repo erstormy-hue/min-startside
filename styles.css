@@ -155,8 +155,8 @@ a {
 .trend-widget {
   position: fixed;
   left: clamp(14px, 3vw, 36px);
-  width: clamp(182px, 17.5vw, 252px);
-  padding: 0.7rem;
+  width: clamp(220px, 18.5vw, 290px);
+  padding: 0.78rem;
   z-index: 1;
 }
 
@@ -165,7 +165,7 @@ a {
 }
 
 .fund-widget {
-  top: 282px;
+  top: 292px;
 }
 
 .btc-head {
@@ -186,6 +186,8 @@ a {
 .btc-head h2 {
   margin: 0;
   font-size: 0.88rem;
+  line-height: 1.12;
+  text-align: right;
 }
 
 .btc-price {
@@ -197,6 +199,13 @@ a {
 .btc-change {
   margin: 0.15rem 0 0.4rem;
   font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.fund-updated {
+  margin: -0.12rem 0 0.5rem;
+  font-size: 0.62rem;
+  line-height: 1.35;
   color: var(--text-muted);
 }
 
@@ -217,6 +226,7 @@ a {
 }
 
 .fund-sparkline {
+  height: 64px;
   background: linear-gradient(180deg, rgba(65, 200, 255, 0.2) 0%, rgba(65, 200, 255, 0) 100%);
 }
 
@@ -225,7 +235,7 @@ a {
   display: flex;
   justify-content: flex-end;
   gap: 0.35rem;
-  margin: 0.15rem 0 0.35rem;
+  margin: 0.2rem 0 0.45rem;
 }
 
 .fund-period {
@@ -242,13 +252,18 @@ a {
 .fund-period.is-active {
   border-color: #41c8ff;
   color: #41c8ff;
+  background: rgba(65, 200, 255, 0.12);
 }
 
 .fund-period:hover,
 .fund-period:focus-visible {
   border-color: #85d9ff;
   color: #85d9ff;
-  outline: none;
+}
+
+.fund-period:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
 }
 .btc-link {
   display: inline-block;
