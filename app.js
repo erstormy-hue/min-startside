@@ -75,11 +75,7 @@ const favorites = [
 
 const THEME_KEY = "min-startside-theme";
 const BTC_HOLDINGS = 0.755;
-const KLP_FUND_ISIN = "NO0010776040";
-const KLP_FUND_UNITS = 2267.4217;
-const KLP_CURRENT_NAV = 1782.07;
-const KLP_CURRENT_NAV_DATE = "2026-05-18";
-const KLP_FUND_HISTORY = [
+const KLP_GLOBAL_HISTORY = [
   { date: "2025-05-13", value: 3220.0 },
   { date: "2025-06-13", value: 3268.0 },
   { date: "2025-07-13", value: 3352.0 },
@@ -96,6 +92,66 @@ const KLP_FUND_HISTORY = [
   { date: "2026-05-08", value: 3667.0 },
   { date: "2026-05-13", value: 3693.18 },
 ];
+const FUND_TRENDS = [
+  {
+    id: "klp-global",
+    name: "KLP AksjeGlobal Indeks P",
+    isin: "NO0010776040",
+    units: 2267.4217,
+    nav: 1782.07,
+    navDate: "2026-05-18",
+    link: "https://www.klp.no/fond/vare-fond/NO0010776040?virksomhet=true",
+    history: KLP_GLOBAL_HISTORY,
+    defaultPeriod: "3m",
+  },
+  {
+    id: "klp-frn",
+    name: "KLP FRN N",
+    isin: "NO0012445834",
+    units: 959.3111,
+    nav: 1031,
+    navDate: "2026-05-13",
+    monthlySaving: 8000,
+    link: "https://www.kron.no/fond/NO0012445834",
+    returns: {
+      "1m": 0.5,
+      "6m": 2.5,
+      "1y": 5.6,
+    },
+    defaultPeriod: "6m",
+  },
+  {
+    id: "klp-obligasjon",
+    name: "KLP Obligasjon 3 år N",
+    isin: "NO0012445701",
+    units: 800.6039,
+    nav: 1023,
+    navDate: "2026-05-13",
+    monthlySaving: 4000,
+    link: "https://www.kron.no/fond/NO0012445701",
+    returns: {
+      "1m": 0.2,
+      "6m": 0.3,
+      "1y": 2.8,
+    },
+    defaultPeriod: "6m",
+  },
+  {
+    id: "first-global-focus",
+    name: "FIRST Global Focus",
+    isin: "NO0010802556",
+    units: 52.702,
+    nav: 3097.1,
+    navDate: "2026-05-13",
+    link: "https://firstfondene.no/fond/first-global-focus/",
+    returns: {
+      "1d": 0.36,
+      "ytd": -12.89,
+      "1y": 7.66,
+    },
+    defaultPeriod: "1y",
+  },
+];
 const STATHELLE = {
   lat: 59.046,
   lon: 9.698,
@@ -109,10 +165,7 @@ const weatherContent = document.getElementById("weather-content");
 const btcPriceEl = document.getElementById("btc-price");
 const btcChangeEl = document.getElementById("btc-change");
 const btcSparklineEl = document.getElementById("btc-sparkline");
-const fundPriceEl = document.getElementById("fund-price");
-const fundChangeEl = document.getElementById("fund-change");
-const fundSparklineEl = document.getElementById("fund-sparkline");
-const fundUpdatedEl = document.getElementById("fund-updated");
+const fundTrendsEl = document.getElementById("fund-trends");
 
 function renderFavorites() {
   if (!favoritesGrid) return;
@@ -314,104 +367,176 @@ async function initBitcoinTrend() {
   }
 }
 
-function initFundTrend() {
-  if (!fundPriceEl || !fundChangeEl || !fundSparklineEl) return;
+function formatUnits(value) {
+  return new Intl.NumberFormat("nb-NO", {
+    minimumFractionDigits: 3,
+    maximumFractionDigits: 4,
+  }).format(value);
+}
 
-  const fundPeriods = {
-    "1m": {
-      label: "siste 1 mnd",
-      days: 31,
-    },
-    "3m": {
-      label: "siste 3 mnd",
-      days: 92,
-    },
-    "1y": {
-      label: "siste 1 år",
-      days: 366,
-    },
-  };
+function periodLabel(periodKey) {
+  return (
+    {
+      "1d": "siste dag",
+      "1m": "siste 1 mnd",
+      "3m": "siste 3 mnd",
+      "6m": "siste 6 mnd",
+      ytd: "hittil i år",
+      "1y": "siste 1 år",
+    }[periodKey] || periodKey
+  );
+}
 
-  const periodButtons = document.querySelectorAll("[data-fund-period]");
-  const rawHistory = KLP_FUND_HISTORY.map((point) => ({
-    ...point,
-    timestamp: new Date(`${point.date}T00:00:00`).getTime(),
-  })).sort((a, b) => a.timestamp - b.timestamp);
-  const navScale = KLP_CURRENT_NAV / rawHistory[rawHistory.length - 1].value;
+function periodDays(periodKey) {
+  return (
+    {
+      "1d": 1,
+      "1m": 31,
+      "3m": 92,
+      "6m": 183,
+      ytd: 138,
+      "1y": 366,
+    }[periodKey] || 92
+  );
+}
+
+function normalizedHistory(fund) {
+  if (!Array.isArray(fund.history)) return [];
+
+  const rawHistory = fund.history
+    .map((point) => ({
+      ...point,
+      timestamp: new Date(`${point.date}T00:00:00`).getTime(),
+    }))
+    .sort((a, b) => a.timestamp - b.timestamp);
+  const navScale = fund.nav / rawHistory[rawHistory.length - 1].value;
   const history = rawHistory.map((point) => ({
     ...point,
     value: point.value * navScale,
   }));
 
-  if (history[history.length - 1].date !== KLP_CURRENT_NAV_DATE) {
+  if (history[history.length - 1].date !== fund.navDate) {
     history.push({
-      date: KLP_CURRENT_NAV_DATE,
-      value: KLP_CURRENT_NAV,
-      timestamp: new Date(`${KLP_CURRENT_NAV_DATE}T00:00:00`).getTime(),
+      date: fund.navDate,
+      value: fund.nav,
+      timestamp: new Date(`${fund.navDate}T00:00:00`).getTime(),
     });
   }
 
+  return history;
+}
+
+function valuesFromReturn(fund, periodKey) {
+  const change = Number(fund.returns?.[periodKey] ?? 0);
+  const startValue = fund.nav / (1 + change / 100);
+  const midValue = startValue + (fund.nav - startValue) * 0.48;
+  const wiggle = Math.max(Math.abs(fund.nav - startValue) * 0.16, fund.nav * 0.0008);
+
+  return [
+    startValue * fund.units,
+    (midValue - wiggle) * fund.units,
+    (midValue + wiggle * 0.55) * fund.units,
+    fund.nav * fund.units,
+  ];
+}
+
+function valuesFromHistory(fund, periodKey) {
+  const history = normalizedHistory(fund);
   const latestPoint = history[history.length - 1];
+  const cutoff = latestPoint.timestamp - periodDays(periodKey) * 24 * 60 * 60 * 1000;
+  const periodPoints = history.filter((point) => point.timestamp >= cutoff);
+  const selectedPoints = periodPoints.length < 2 ? history.slice(-2) : periodPoints;
 
-  const getPeriodValues = (periodKey) => {
-    const period = fundPeriods[periodKey] || fundPeriods["3m"];
-    const cutoff = latestPoint.timestamp - period.days * 24 * 60 * 60 * 1000;
-    const periodPoints = history.filter((point) => point.timestamp >= cutoff);
+  return selectedPoints.map((point) => point.value * fund.units);
+}
 
-    if (periodPoints.length < 2) {
-      return history.slice(-2);
-    }
+function fundPeriodChange(fund, periodKey, values) {
+  if (fund.returns?.[periodKey] !== undefined) {
+    return Number(fund.returns[periodKey]);
+  }
 
-    return periodPoints;
-  };
+  return ((values[values.length - 1] - values[0]) / values[0]) * 100;
+}
 
-  const renderFundPeriod = (periodKey) => {
-    const current = fundPeriods[periodKey] || fundPeriods["3m"];
-    const periodPoints = getPeriodValues(periodKey);
-    const values = periodPoints.map((point) => point.value * KLP_FUND_UNITS);
-    const latestValue = latestPoint.value;
-    const startValue = periodPoints[0].value;
-    const latestPortfolioValue = latestValue * KLP_FUND_UNITS;
-    const periodChange = ((latestValue - startValue) / startValue) * 100;
-    const periodDays = daysBetween(new Date(`${periodPoints[0].date}T00:00:00`), new Date(`${latestPoint.date}T00:00:00`));
+function renderFundCard(fund, periodKey = fund.defaultPeriod) {
+  const values = fund.history ? valuesFromHistory(fund, periodKey) : valuesFromReturn(fund, periodKey);
+  const periodChange = fundPeriodChange(fund, periodKey, values);
+  const currentValue = fund.nav * fund.units;
+  const card = document.querySelector(`[data-fund-card="${fund.id}"]`);
+  if (!card) return;
 
-    fundPriceEl.textContent = formatCurrency(latestPortfolioValue);
+  const priceEl = card.querySelector("[data-fund-value]");
+  const changeEl = card.querySelector("[data-fund-change]");
+  const metaEl = card.querySelector("[data-fund-meta]");
+  const sparklineEl = card.querySelector("[data-fund-sparkline]");
+  const periodButtons = card.querySelectorAll("[data-fund-period]");
 
-    fundChangeEl.textContent = `${periodChange >= 0 ? "▲" : "▼"} ${Math.abs(periodChange).toFixed(2)} % ${current.label}`;
-    fundChangeEl.classList.toggle("is-up", periodChange >= 0);
-    fundChangeEl.classList.toggle("is-down", periodChange < 0);
+  priceEl.textContent = formatCurrency(currentValue);
+  changeEl.textContent = `${periodChange >= 0 ? "▲" : "▼"} ${Math.abs(periodChange).toFixed(2)} % ${periodLabel(periodKey)}`;
+  changeEl.classList.toggle("is-up", periodChange >= 0);
+  changeEl.classList.toggle("is-down", periodChange < 0);
 
-    if (fundUpdatedEl) {
-      fundUpdatedEl.textContent = `NAV ${formatCurrency(KLP_CURRENT_NAV, 2)} · ${new Intl.NumberFormat("nb-NO", {
-        minimumFractionDigits: 4,
-        maximumFractionDigits: 4,
-      }).format(KLP_FUND_UNITS)} andeler · ${formatDate(latestPoint.date)}`;
-    }
+  const savingText = fund.monthlySaving ? ` · ${formatCurrency(fund.monthlySaving)}/mnd` : "";
+  metaEl.textContent = `NAV ${formatCurrency(fund.nav, 2)} · ${formatUnits(fund.units)} andeler${savingText} · ${formatDate(fund.navDate)}`;
+  sparklineEl.setAttribute("aria-label", `${fund.name} trend ${periodLabel(periodKey)}`);
 
-    fundSparklineEl.setAttribute(
-      "aria-label",
-      `KLP AksjeGlobal Indeks P trend ${current.label}, ${periodDays} dager`
-    );
-
-    buildSparkline(fundSparklineEl, values, "fund-line", {
-      start: "#41c8ff",
-      end: "#85d9ff",
-    });
-
-    periodButtons.forEach((button) => {
-      const isActive = button.dataset.fundPeriod === periodKey;
-      button.classList.toggle("is-active", isActive);
-      button.setAttribute("aria-pressed", String(isActive));
-    });
-  };
-
-  periodButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      renderFundPeriod(button.dataset.fundPeriod || "3m");
-    });
+  buildSparkline(sparklineEl, values, `${fund.id}-line`, {
+    start: "#41c8ff",
+    end: "#85d9ff",
   });
 
-  renderFundPeriod("3m");
+  periodButtons.forEach((button) => {
+    const isActive = button.dataset.fundPeriod === periodKey;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-pressed", String(isActive));
+  });
+}
+
+function initFundTrends() {
+  if (!fundTrendsEl) return;
+
+  fundTrendsEl.innerHTML = FUND_TRENDS.map((fund) => {
+    const periods = Object.keys(fund.returns || { "1m": true, "3m": true, "1y": true });
+    const periodButtons = periods
+      .map(
+        (period) =>
+          `<button type="button" class="fund-period" data-fund-period="${period}" aria-pressed="false">${period.toUpperCase()}</button>`
+      )
+      .join("");
+
+    return `
+      <article class="fund-card" data-fund-card="${fund.id}">
+        <div class="fund-card-head">
+          <h3>${fund.name}</h3>
+          <a class="fund-card-link" href="${fund.link}" target="_blank" rel="noopener noreferrer" aria-label="Åpne ${fund.name}">Åpne</a>
+        </div>
+        <p class="fund-value" data-fund-value>--</p>
+        <p class="btc-change fund-change" data-fund-change>Henter utvikling…</p>
+        <p class="fund-updated" data-fund-meta>Henter siste oppdatering…</p>
+        <div class="fund-periods" role="group" aria-label="Velg trendperiode for ${fund.name}">
+          ${periodButtons}
+        </div>
+        <svg
+          class="btc-sparkline fund-sparkline"
+          data-fund-sparkline
+          viewBox="0 0 100 30"
+          preserveAspectRatio="none"
+          role="img"
+          aria-label="${fund.name} trend"
+        ></svg>
+      </article>
+    `;
+  }).join("");
+
+  FUND_TRENDS.forEach((fund) => {
+    const card = document.querySelector(`[data-fund-card="${fund.id}"]`);
+    card?.querySelectorAll("[data-fund-period]").forEach((button) => {
+      button.addEventListener("click", () => {
+        renderFundCard(fund, button.dataset.fundPeriod || fund.defaultPeriod);
+      });
+    });
+    renderFundCard(fund, fund.defaultPeriod);
+  });
 }
 
 async function initWeather() {
@@ -460,5 +585,5 @@ initClock();
 initTheme();
 initWeather();
 initBitcoinTrend();
-initFundTrend();
+initFundTrends();
 setInterval(initBitcoinTrend, 5 * 60 * 1000);

@@ -34,34 +34,14 @@
       >
     </section>
 
-    <section class="trend-widget fund-widget glass" aria-labelledby="fund-title">
+    <section class="trend-widget funds-widget glass" aria-labelledby="funds-title">
       <div class="btc-head">
         <p class="btc-label">Fond</p>
-        <h2 id="fund-title">KLP AksjeGlobal Indeks P</h2>
+        <h2 id="funds-title">Fondstrender</h2>
       </div>
-      <p id="fund-price" class="btc-price">Laster fondsverdi…</p>
-      <p id="fund-change" class="btc-change">Henter utvikling siste 3 mnd…</p>
-      <p id="fund-updated" class="fund-updated">Henter siste oppdatering…</p>
-      <div class="fund-periods" role="group" aria-label="Velg trendperiode for fond">
-        <button type="button" class="fund-period" data-fund-period="1m">1M</button>
-        <button type="button" class="fund-period is-active" data-fund-period="3m">3M</button>
-        <button type="button" class="fund-period" data-fund-period="1y">1Y</button>
+      <div id="fund-trends" class="fund-trends" aria-live="polite">
+        <p class="fund-status">Laster fondstrender…</p>
       </div>
-      <svg
-        id="fund-sparkline"
-        class="btc-sparkline fund-sparkline"
-        viewBox="0 0 100 30"
-        preserveAspectRatio="none"
-        role="img"
-        aria-label="KLP AksjeGlobal Indeks P trend"
-      ></svg>
-      <a
-        class="btc-link"
-        href="https://www.klp.no/fond/vare-fond/NO0010776040?virksomhet=true"
-        target="_blank"
-        rel="noopener noreferrer"
-        >Åpne fondet hos KLP</a
-      >
     </section>
 
     <a
@@ -135,6 +115,6 @@
       </section>
     </main>
 
-    <script src="app.js?v=klp-andeler-20260518"></script>
+    <script src="app.js?v=fund-trends-20260518"></script>
   </body>
 </html>
