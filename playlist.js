@@ -1,5 +1,5 @@
 const THEME_KEY = "min-startside-theme";
-const FILE_BASE = "file:///Volumes/SSD%20Erling/RKstudio%20mp3/";
+const FILE_BASE = "audio/rkstudio/";
 const RKSTUDIO_TRACKS = [
   "A_Song_I_cant_sing.mp3",
   "Aint_Ready.mp3",
@@ -90,7 +90,7 @@ function initTheme() {
 }
 
 function renderPlaylist() {
-  playlistMeta.textContent = `${tracks.length} låter fra RKstudio mp3`;
+  playlistMeta.textContent = `${tracks.length} låter fra RKstudio på nett`;
 
   if (!filteredTracks.length) {
     playlistEl.innerHTML = '<li class="playlist-empty">Ingen låter matcher søket.</li>';
