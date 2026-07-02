@@ -1,5 +1,5 @@
 const THEME_KEY = "min-startside-theme";
-const FILE_BASE = "audio/rkstudio/";
+const FILE_BASE = "https://cdn.jsdelivr.net/gh/erstormy-hue/min-startside@main/audio/rkstudio/";
 const RKSTUDIO_TRACKS = [
   "A_Song_I_cant_sing.mp3",
   "Aint_Ready.mp3",
