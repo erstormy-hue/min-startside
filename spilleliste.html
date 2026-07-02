@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="no">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="RKstudio spilleliste med lokale MP3-låter fra SSD."
+    />
+    <title>RKstudio Spilleliste</title>
+    <link rel="stylesheet" href="styles.css?v=rkstudio-player-20260702" />
+  </head>
+  <body>
+    <div class="bg-motion" aria-hidden="true">
+      <span class="orb orb-a"></span>
+      <span class="orb orb-b"></span>
+      <span class="orb orb-c"></span>
+    </div>
+
+    <header class="site-header" id="top" role="banner">
+      <nav class="nav" aria-label="Hovedmeny">
+        <a class="logo" href="index.html">Erling`s home</a>
+
+        <div class="nav-right">
+          <ul class="menu">
+            <li><a href="index.html">Startside</a></li>
+            <li><a href="index.html#favoritter">Favoritter</a></li>
+          </ul>
+
+          <button
+            id="theme-toggle"
+            class="theme-toggle"
+            type="button"
+            aria-label="Bytt mellom lys og mørk modus"
+          >
+            Lys / Mørk
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <main class="page player-page fade-in">
+      <section class="player-shell glass" aria-labelledby="playlist-title">
+        <div class="player-header">
+          <div>
+            <p class="eyebrow">RKstudio</p>
+            <h1 id="playlist-title">Spilleliste</h1>
+            <p id="playlist-meta" class="player-meta">Laster låter fra SSD...</p>
+          </div>
+          <img src="rk-logo smaal.png" class="player-logo" alt="RKstudio logo" />
+        </div>
+
+        <div class="now-playing">
+          <p class="now-label">Spiller nå</p>
+          <h2 id="now-title">Velg en låt</h2>
+        </div>
+
+        <audio id="audio-player" class="audio-player" controls preload="metadata"></audio>
+
+        <div class="player-controls" aria-label="Avspillingskontroller">
+          <button id="prev-track" type="button" class="player-button">Forrige</button>
+          <button id="play-track" type="button" class="player-button primary">Spill</button>
+          <button id="next-track" type="button" class="player-button">Neste</button>
+          <button id="shuffle-track" type="button" class="player-button" aria-pressed="false">Shuffle</button>
+          <button id="repeat-track" type="button" class="player-button" aria-pressed="false">Repeter</button>
+        </div>
+
+        <div class="playlist-tools">
+          <label class="search-label" for="track-search">Søk i låter</label>
+          <input id="track-search" class="track-search" type="search" placeholder="Søk etter tittel..." />
+          <button id="choose-folder" type="button" class="player-button">Velg RKstudio-mappe</button>
+        </div>
+
+        <ol id="playlist" class="playlist" aria-live="polite"></ol>
+      </section>
+    </main>
+
+    <script src="playlist.js?v=rkstudio-player-20260702"></script>
+  </body>
+</html>

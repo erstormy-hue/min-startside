@@ -36,6 +36,13 @@ const favorites = [
     icon: "🎶",
   },
   {
+    title: "RKstudio",
+    desc: "Lokal spilleliste fra SSD-en.",
+    url: "spilleliste.html",
+    icon: "🎧",
+    local: true,
+  },
+  {
     title: "YouTube",
     desc: "Videoer og kanaler.",
     url: "https://www.youtube.com",
@@ -176,9 +183,8 @@ function renderFavorites() {
       <a
         class="favorite-card favorite-tone-${(index % 6) + 1}"
         href="${item.url}"
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="${item.title} (åpnes i ny fane)"
+        ${item.local ? "" : 'target="_blank" rel="noopener noreferrer"'}
+        aria-label="${item.title}${item.local ? "" : " (åpnes i ny fane)"}"
       >
         <span class="favorite-icon" aria-hidden="true">${item.icon}</span>
         <h3 class="favorite-title">${item.title}</h3>
