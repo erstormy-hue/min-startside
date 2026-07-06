@@ -82,6 +82,7 @@ const favorites = [
 
 const THEME_KEY = "min-startside-theme";
 const BTC_HOLDINGS = 0.755;
+const FUND_DATA_ENDPOINT = "data/fund-trends.json";
 const KLP_GLOBAL_HISTORY = [
   { date: "2025-05-13", value: 3220.0 },
   { date: "2025-06-13", value: 3268.0 },
@@ -159,6 +160,7 @@ const FUND_TRENDS = [
     defaultPeriod: "1y",
   },
 ];
+let activeFundTrends = FUND_TRENDS.map((fund) => ({ ...fund }));
 const STATHELLE = {
   lat: 59.046,
   lon: 9.698,
@@ -380,6 +382,61 @@ function formatUnits(value) {
   }).format(value);
 }
 
+function mergeFundData(funds, liveData) {
+  if (!Array.isArray(liveData?.funds)) {
+    return funds;
+  }
+
+  const liveById = new Map(liveData.funds.map((fund) => [fund.id, fund]));
+
+  return funds.map((fund) => {
+    const liveFund = liveById.get(fund.id);
+    if (!liveFund) return fund;
+
+    const nextFund = {
+      ...fund,
+      nav: Number(liveFund.nav ?? fund.nav),
+      navDate: liveFund.navDate || fund.navDate,
+      dataSource: liveData.source || "data/fund-trends.json",
+      dataUpdatedAt: liveData.updatedAt,
+    };
+
+    if (Array.isArray(liveFund.history) && liveFund.history.length > 1) {
+      nextFund.history = liveFund.history
+        .map((point) => ({
+          date: point.date,
+          value: Number(point.value),
+        }))
+        .filter((point) => point.date && Number.isFinite(point.value));
+      delete nextFund.returns;
+    } else if (liveFund.returns && typeof liveFund.returns === "object") {
+      nextFund.returns = Object.fromEntries(
+        Object.entries(liveFund.returns)
+          .map(([period, value]) => [period, Number(value)])
+          .filter(([, value]) => Number.isFinite(value))
+      );
+    }
+
+    return nextFund;
+  });
+}
+
+async function loadFundTrends() {
+  try {
+    const response = await fetch(`${FUND_DATA_ENDPOINT}?v=${Date.now()}`, {
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    activeFundTrends = mergeFundData(FUND_TRENDS, await response.json());
+  } catch (error) {
+    activeFundTrends = FUND_TRENDS.map((fund) => ({ ...fund }));
+  }
+}
+
 function periodLabel(periodKey) {
   return (
     {
@@ -498,10 +555,11 @@ function renderFundCard(fund, periodKey = fund.defaultPeriod) {
   });
 }
 
-function initFundTrends() {
+async function initFundTrends() {
   if (!fundTrendsEl) return;
+  await loadFundTrends();
 
-  fundTrendsEl.innerHTML = FUND_TRENDS.map((fund) => {
+  fundTrendsEl.innerHTML = activeFundTrends.map((fund) => {
     const periods = Object.keys(fund.returns || { "1m": true, "3m": true, "1y": true });
     const periodButtons = periods
       .map(
@@ -534,7 +592,7 @@ function initFundTrends() {
     `;
   }).join("");
 
-  FUND_TRENDS.forEach((fund) => {
+  activeFundTrends.forEach((fund) => {
     const card = document.querySelector(`[data-fund-card="${fund.id}"]`);
     card?.querySelectorAll("[data-fund-period]").forEach((button) => {
       button.addEventListener("click", () => {
